@@ -13,7 +13,7 @@ app=FastAPI()
 model=load_model('model.keras')
 with open("labels.txt") as f:
     labels=f.readlines()
-app.mount('img',StaticFiles(directory='./img'))
+app.mount('/img',StaticFiles(directory='./img'))
 @app.post("/predict")
 async def predict(img:UploadFile=File(...)):
     contents = await img.read()
@@ -22,6 +22,7 @@ async def predict(img:UploadFile=File(...)):
     img_array = np.array(image) / 255.0  
     img_array = np.expand_dims(img_array, axis=0) 
     result = model.predict(img_array)
-    df=pd.read_sql("select * from Tone where name=?",con,params=(labels[np.argmax(result)]))
+    print(labels[np.argmax(result)])
+    df = pd.read_sql("select * from Tone where name=?", con, params=(labels[np.argmax(result)].strip(),))
     return dict(zip(df.columns,df.values[0]))    
     
